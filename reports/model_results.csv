@@ -1,0 +1,5 @@
+model,MAE (kgCO2e),RMSE (kgCO2e),R²,Within ±20% (%),MAE improvement vs DEFRA (%)
+DEFRA flat baseline,1.42,11.76,1.0,100.0,0.0
+XGBoost (Optuna),1136.97,10632.81,0.1579,11.3,-79688.6
+LightGBM (Optuna),1126.27,10624.8,0.1592,11.3,-78937.3
+Random Forest (tuned),1028.04,10032.3,0.2504,12.5,-72044.3

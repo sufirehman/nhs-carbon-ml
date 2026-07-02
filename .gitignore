@@ -1,0 +1,56 @@
+# Raw data: large files downloadable from original sources (see README Data Sources section)
+# Using /* instead of / so that !exception patterns below are respected by git
+data/raw/*
+# Manually collected research data: committed as part of this repository
+!data/raw/supplier_crps_manual.csv
+!data/raw/MANUAL_CRP_COLLECTION.md
+
+# Intermediate derived data: regenerable from raw files + src/ scripts
+data/interim/*
+# Lookup tables encoding manual research decisions: committed
+!data/interim/bnf_to_defra_mapping.csv
+!data/interim/defra_mapping_SOURCES.md
+!data/interim/exiobase_consumption_basis.md
+
+# Final processed datasets: too large to commit, regenerable from pipeline
+data/processed/
+
+# Trained model artefacts: too large to commit (best_model.pkl ~259 MB)
+# Leading / anchors to repo root so src/models/ is NOT excluded
+/models/
+*.pkl
+*.joblib
+*.model
+
+# Python artefacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+
+# Environment files (may contain API keys)
+.env
+.env.*
+*.env
+
+# Claude Code project-local settings
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

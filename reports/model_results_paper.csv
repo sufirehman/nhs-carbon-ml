@@ -1,0 +1,5 @@
+model,MAE (kgCO2e),RMSE (kgCO2e),R²,Within ±20% (%),note
+DEFRA flat baseline,1.42,11.76,1.0,100.0,"Target = INDICATIVE_COST x 0.2402; baseline predicts INDICATIVE_COST x 0.24. Near-zero MAE reflects label circularity, not predictive performance. Not a valid comparator for ML models."
+XGBoost (Optuna),1136.97,10632.81,0.1579,11.3,ML model trained without access to INDICATIVE_COST or TOTAL_QUANTITY. MAE and R2 are descriptive statistics of product-feature fit quality.
+LightGBM (Optuna),1126.27,10624.8,0.1592,11.3,ML model trained without access to INDICATIVE_COST or TOTAL_QUANTITY. MAE and R2 are descriptive statistics of product-feature fit quality.
+Random Forest (tuned),1028.04,10032.3,0.2504,12.5,ML model trained without access to INDICATIVE_COST or TOTAL_QUANTITY. MAE and R2 are descriptive statistics of product-feature fit quality.

@@ -1,0 +1,35 @@
+# NHS Carbon ML — Python dependencies
+# Pin to stable minor versions; upgrade intentionally.
+
+# Data wrangling
+pandas>=2.2,<3.0
+numpy>=1.26,<2.0
+openpyxl>=3.1,<4.0
+
+# ML core
+scikit-learn>=1.4,<2.0
+xgboost>=2.0,<3.0
+lightgbm>=4.3,<5.0
+
+# Hyperparameter optimisation
+optuna>=3.6,<4.0
+
+# Explainability
+shap>=0.45,<1.0
+
+# Visualisation
+matplotlib>=3.8,<4.0
+seaborn>=0.13,<1.0
+
+# PDF extraction (supplier CRPs)
+pdfplumber>=0.11,<1.0
+
+# HTTP downloads
+requests>=2.31,<3.0
+
+# Web app / dashboard
+streamlit>=1.35,<2.0
+
+# Notebook support
+jupyter>=1.0,<2.0
+ipykernel>=6.29,<7.0
