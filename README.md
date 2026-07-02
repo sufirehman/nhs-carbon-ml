@@ -107,4 +107,4 @@ All outputs land in `reports/` and `reports/figures/`.
 Sufiyan Ul Rehman, Ulster University / Solent University (QA HE).
 Contact: sufirehman12@gmail.com
 
-Prior work: [CAML-TC, IEEE — link to be added]
+Prior work: [CAML-TC, IEEE, link to be added]
