@@ -1,12 +1,13 @@
 """
 NHS Carbon ML Dashboard
 
-Five-page Streamlit research preview:
-  1. Overview             -- dataset summary and spend breakdowns
-  2. Carbon Explorer      -- model predictions and what-if tool
-  3. SHAP Intelligence    -- feature importance
-  4. Supplier Transparency -- CRP analysis and INN naming coverage
-  5. Methodology          -- circular label problem and model evaluation
+Six-page Streamlit research preview:
+  1. Home                 -- landing page, headline findings, navigation
+  2. Overview             -- dataset summary and spend breakdowns
+  3. Carbon Explorer      -- model predictions and what-if tool
+  4. SHAP Intelligence    -- feature importance
+  5. Supplier Transparency -- CRP analysis and INN naming coverage
+  6. Methodology          -- circular label problem and model evaluation
 
 Run from the project root:
   streamlit run demo/app.py
@@ -46,6 +47,8 @@ TEAL  = "#00A499"
 NAVY  = "#003087"
 GREY  = "#425563"
 LTEAL = "#AED9D5"
+BG    = "#FAFAFA"
+TXT   = "#0D1B2A"
 
 
 # ── Page configuration ─────────────────────────────────────────────────────────
@@ -231,6 +234,19 @@ SHAP_LABELS = {
 
 # ── Sidebar ────────────────────────────────────────────────────────────────────
 
+PAGES = ["Home", "Overview", "Carbon Explorer", "SHAP Intelligence",
+          "Supplier Transparency", "Methodology"]
+
+# Let Home-page links (plain <a href="?page=..."> anchors) drive navigation.
+# Query params must be consumed *before* the radio widget below is created,
+# since a keyed widget's value can only be set prior to instantiation.
+_qp_page = st.query_params.get("page")
+if _qp_page in PAGES:
+    st.session_state["nav_page"] = _qp_page
+    st.query_params.clear()
+elif "nav_page" not in st.session_state:
+    st.session_state["nav_page"] = "Home"
+
 with st.sidebar:
     st.markdown(
         f'<div style="background:{NAVY};color:white;padding:1rem 1.2rem;'
@@ -243,10 +259,7 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
     page = st.radio(
-        "Page",
-        ["Overview", "Carbon Explorer", "SHAP Intelligence",
-         "Supplier Transparency", "Methodology"],
-        label_visibility="collapsed",
+        "Page", PAGES, key="nav_page", label_visibility="collapsed",
     )
     st.divider()
     st.caption("Data: NHSBSA SCMD, Feb 2025")
@@ -255,10 +268,242 @@ with st.sidebar:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+# PAGE 0 — HOME
+# ══════════════════════════════════════════════════════════════════════════════
+
+if page == "Home":
+
+    # -- 1. Hero -------------------------------------------------------------
+    st.markdown(
+        f"""
+        <div style="background:{NAVY};border-radius:10px;
+                    padding:3rem 3rem 2.6rem 3rem;margin-bottom:1.6rem;">
+            <div style="color:{TEAL};font-size:0.8rem;font-weight:700;
+                        letter-spacing:0.12em;text-transform:uppercase;
+                        margin-bottom:0.9rem;">
+                NHS Carbon Intelligence — Research Dashboard
+            </div>
+            <div style="color:white;font-size:2.5rem;font-weight:800;
+                        line-height:1.18;margin-bottom:1.1rem;max-width:820px;">
+                What does a £500 biologic cost the
+                <span style="color:{TEAL};">planet</span>?
+            </div>
+            <div style="color:#C7D4EA;font-size:1.05rem;line-height:1.6;
+                        max-width:700px;margin-bottom:1.8rem;">
+                NHS carbon accounting today multiplies total spend by a single flat
+                DEFRA factor, so a £500 biologic and £500 of paracetamol are assumed
+                to carry identical emissions. This dashboard replaces that flat
+                multiplier with a machine-learned, product-level carbon estimate
+                trained on 313,375 real NHS dispensing records.
+            </div>
+            <div>
+                <a href="?page=Carbon+Explorer" target="_self" style="
+                    background:{TEAL};color:white;font-weight:600;font-size:0.92rem;
+                    padding:0.65rem 1.4rem;border-radius:6px;text-decoration:none;
+                    margin-right:0.8rem;display:inline-block;">
+                    Explore the data
+                </a>
+                <a href="?page=Methodology" target="_self" style="
+                    background:transparent;color:white;font-weight:600;font-size:0.92rem;
+                    padding:0.6rem 1.35rem;border-radius:6px;text-decoration:none;
+                    border:1.5px solid rgba(255,255,255,0.55);display:inline-block;">
+                    Read the methodology
+                </a>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # -- 2. Stats bar ----------------------------------------------------------
+    stats = [
+        ("313k",     "dispensing rows"),
+        ("8,473",    "unique VMPs"),
+        ("£1.81bn",  "indicative spend"),
+        ("R²=0.763", "log-space fit"),
+        ("15",       "suppliers profiled"),
+    ]
+    stat_html = "".join(
+        f'<div style="flex:1;text-align:center;'
+        f'{"border-left:1px solid #E2E8F0;" if i > 0 else ""}padding:0 0.5rem;">'
+        f'<div style="font-size:1.5rem;font-weight:800;color:{NAVY};">{val}</div>'
+        f'<div style="font-size:0.78rem;color:{GREY};margin-top:2px;">{lbl}</div>'
+        f'</div>'
+        for i, (val, lbl) in enumerate(stats)
+    )
+    st.markdown(
+        f'<div style="background:white;border:1px solid #E2E8F0;border-radius:8px;'
+        f'display:flex;padding:1.1rem 0.5rem;margin-bottom:2rem;">{stat_html}</div>',
+        unsafe_allow_html=True,
+    )
+
+    # -- 3. Key findings ---------------------------------------------------
+    st.subheader("Key findings")
+    findings = [
+        ("3.6x", "Price per unit dominates",
+         "Log price per unit's SHAP value is 3.6× the next-strongest feature "
+         "— unit price is the strongest single proxy for embedded carbon."),
+        ("47%", "Only 7 of 15 suppliers gave usable UK data",
+         "Most Carbon Reduction Plans disclose global, not UK-specific, figures "
+         "— unusable as a direct per-unit label."),
+        ("0.17 vs 0.39", "Production vs consumption basis gap",
+         "Choosing production-basis (ONS 0.17) vs EXIOBASE consumption-basis "
+         "(0.39 kgCO2e/£) more than doubles the estimated carbon total."),
+    ]
+    fc1, fc2, fc3 = st.columns(3)
+    for col, (stat, title, body) in zip([fc1, fc2, fc3], findings):
+        with col:
+            st.markdown(
+                f'<div style="background:{BG};border:1px solid #E2E8F0;'
+                f'border-top:3px solid {TEAL};border-radius:8px;padding:1.3rem 1.2rem;'
+                f'height:100%;">'
+                f'<div style="font-size:1.7rem;font-weight:800;color:{NAVY};">{stat}</div>'
+                f'<div style="font-size:0.92rem;font-weight:700;color:{NAVY};'
+                f'margin:0.35rem 0 0.5rem 0;">{title}</div>'
+                f'<div style="font-size:0.82rem;color:{TXT};line-height:1.5;">{body}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+    st.write("")
+
+    # -- 4. Carbon intensity spectrum ------------------------------------------
+    st.subheader("The carbon intensity spectrum")
+    st.caption(
+        "Predicted carbon intensity (kgCO2e/unit) varies enormously across NHS "
+        "products — three examples from the trained model's own predictions:"
+    )
+
+    vmps_home = vmp_predictions()
+    vp = (
+        vmps_home[vmps_home["predicted_kgco2e_per_unit"] > 0]
+        .sort_values("predicted_kgco2e_per_unit")
+        .reset_index(drop=True)
+    )
+    n_vp    = len(vp)
+    low_ex  = vp.iloc[int(n_vp * 0.10)]
+    mid_ex  = vp.iloc[int(n_vp * 0.50)]
+    high_ex = vp.iloc[int(n_vp * 0.90)]
+
+    def _pill(row, colour) -> str:
+        name = str(row["VMP_PRODUCT_NAME"])[:26]
+        val  = row["predicted_kgco2e_per_unit"]
+        return (
+            f'<div style="background:{colour};color:white;border-radius:20px;'
+            f'padding:0.5rem 1rem;font-size:0.78rem;font-weight:600;'
+            f'text-align:center;flex:1;">'
+            f'{name}<br><span style="font-weight:400;opacity:0.85;">'
+            f'{val:,.1f} kgCO2e/unit</span></div>'
+        )
+
+    st.markdown(
+        f"""
+        <div style="background:{BG};border-radius:8px;padding:1.2rem 1.4rem;">
+            <div style="height:16px;border-radius:8px;
+                        background:linear-gradient(90deg,{TEAL},#3D5A80,{NAVY});">
+            </div>
+            <div style="display:flex;justify-content:space-between;
+                        font-size:0.72rem;color:{GREY};margin-top:4px;
+                        font-weight:600;letter-spacing:0.05em;">
+                <span>LOW</span><span>MID</span><span>HIGH</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:1rem;
+                        margin-top:1rem;">
+                {_pill(low_ex, TEAL)}
+                {_pill(mid_ex, "#3D5A80")}
+                {_pill(high_ex, NAVY)}
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.write("")
+    st.divider()
+
+    # -- 5. Navigation cards -----------------------------------------------
+    st.subheader("Explore the research")
+
+    def _nav_card(title: str, desc: str, target: str, icon: str) -> None:
+        st.markdown(
+            f"""
+            <a href="?page={target.replace(' ', '+')}" target="_self"
+               style="text-decoration:none;">
+                <div style="background:{BG};border:1px solid #E2E8F0;
+                            border-left:4px solid {TEAL};border-radius:8px;
+                            padding:1.3rem 1.3rem;margin-bottom:1rem;">
+                    <div style="font-size:1.4rem;margin-bottom:0.4rem;">{icon}</div>
+                    <div style="font-size:1.02rem;font-weight:700;color:{NAVY};
+                                margin-bottom:0.3rem;">{title}</div>
+                    <div style="font-size:0.82rem;color:{TXT};line-height:1.5;">{desc}</div>
+                </div>
+            </a>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    nr1c1, nr1c2 = st.columns(2)
+    with nr1c1:
+        _nav_card(
+            "Carbon Explorer",
+            "Filter 8,473 products and run What-If scenarios against the "
+            "trained model.",
+            "Carbon Explorer", "🔍",
+        )
+    with nr1c2:
+        _nav_card(
+            "SHAP Intelligence",
+            "See which pharmacological features drive the model's carbon "
+            "predictions.",
+            "SHAP Intelligence", "📊",
+        )
+
+    nr2c1, nr2c2 = st.columns(2)
+    with nr2c1:
+        _nav_card(
+            "Supplier Transparency",
+            "CRP disclosure coverage and the INN naming barrier to supplier "
+            "attribution.",
+            "Supplier Transparency", "🏭",
+        )
+    with nr2c2:
+        _nav_card(
+            "Methodology",
+            "Model evaluation, the circular label problem, and full results.",
+            "Methodology", "📋",
+        )
+
+    # -- 6. Footer strip -------------------------------------------------------
+    st.markdown(
+        f"""
+        <div style="background:{NAVY};border-radius:8px;padding:1.4rem 1.8rem;
+                    margin-top:1.6rem;text-align:center;">
+            <div style="color:white;font-size:0.88rem;">
+                Built by <a href="https://github.com/sufirehman" target="_blank"
+                style="color:{TEAL};text-decoration:none;font-weight:600;">
+                Sufiyan Ul Rehman</a> — AI Researcher and Lecturer,
+                Ulster University / Solent University (QA HE)
+            </div>
+            <div style="margin-top:0.6rem;font-size:0.78rem;">
+                <a href="https://github.com/sufirehman/nhs-carbon-ml" target="_blank"
+                style="color:#C7D4EA;text-decoration:none;margin:0 0.6rem;">GitHub</a>
+                ·
+                <a href="https://opendata.nhsbsa.net/dataset" target="_blank"
+                style="color:#C7D4EA;text-decoration:none;margin:0 0.6rem;">NHSBSA data</a>
+                ·
+                <span style="color:#8FA3C7;margin:0 0.6rem;">Paper (under review)</span>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # PAGE 1 — OVERVIEW
 # ══════════════════════════════════════════════════════════════════════════════
 
-if page == "Overview":
+elif page == "Overview":
     st.title("Overview")
     st.markdown(
         "NHS secondary-care medicine procurement, February 2025 (NHSBSA SCMD). "
